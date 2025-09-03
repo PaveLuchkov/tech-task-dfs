@@ -26,10 +26,8 @@ class RateLimiter:
         with self.lock:
             self.total_requests += 1
             now = time.time()
-            # Удаляем запросы старше минуты
             self.requests = [req_time for req_time in self.requests if now - req_time < 60]
             
-            # Если достигли лимита, ждем
             if len(self.requests) >= self.max_requests:
                 sleep_time = 60 - (now - self.requests[0]) + 0.1
                 self.total_waits += 1
@@ -37,7 +35,6 @@ class RateLimiter:
                 await asyncio.sleep(sleep_time)
                 return await self.acquire()
             
-            # Добавляем текущий запрос
             self.requests.append(now)
 
 async def extract_keyphrases_batch_async(client, abstracts_batch: List[str], 
@@ -71,13 +68,11 @@ async def extract_keyphrases_batch_async(client, abstracts_batch: List[str],
     
     for attempt in range(max_retries + 1):
         try:
-            # Ждем разрешения на запрос
             await rate_limiter.acquire()
             
             print(f"Отправка батча {batch_idx + 1} (аннотации {start_idx + 1}-{start_idx + len(abstracts_batch)})" + 
                   (f" - попытка {attempt + 1}" if attempt > 0 else ""))
             
-            # Выполняем синхронный вызов в отдельном потоке
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor(max_workers=1) as executor:
                 response = await loop.run_in_executor(
@@ -100,8 +95,7 @@ async def extract_keyphrases_batch_async(client, abstracts_batch: List[str],
             is_retryable = is_rate_limit_error or is_server_error
             
             if attempt < max_retries and is_retryable:
-                # Экспоненциальная задержка для повторных попыток
-                delay = (2 ** attempt) * 5  # 5, 10, 20 секунд
+                delay = (2 ** attempt) * 5
                 print(f"⚠️  Ошибка в батче {batch_idx + 1} (попытка {attempt + 1}): {e}")
                 print(f"   Повтор через {delay} секунд...")
                 await asyncio.sleep(delay)
