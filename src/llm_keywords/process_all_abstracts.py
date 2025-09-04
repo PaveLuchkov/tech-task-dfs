@@ -10,7 +10,7 @@ from .extracrt_keyphrases import extract_keyphrases_batch_async
 async def process_all_abstracts_async(df: pd.DataFrame, batch_size: int = 20, 
                                     max_concurrent: int = 5, 
                                     max_retries: int = 3) -> pd.DataFrame:
-    """Асинхронно обрабатывает все аннотации батчами с повторными попытками"""
+    """Обрабатывает все аннотации батчами с повторными попытками"""
     
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     rate_limiter = RateLimiter(max_requests_per_minute=14)
@@ -52,7 +52,6 @@ async def process_all_abstracts_async(df: pd.DataFrame, batch_size: int = 20,
     results = await asyncio.gather(*bounded_tasks, return_exceptions=True)
     
     end_time = time.time()
-    print(f"\n⏱️  Обработка завершена за {end_time - start_time:.1f} секунд")
     
     successful_batches = 0
     failed_batches = 0
@@ -82,5 +81,6 @@ async def process_all_abstracts_async(df: pd.DataFrame, batch_size: int = 20,
     print(f"✅ Успешно обработано: {successful_batches}/{total_batches} батчей")
     print(f"❌ Не удалось обработать: {failed_batches}/{total_batches} батчей")
     print(f"📈 Процент успеха: {successful_batches/total_batches*100:.1f}%")
+    print(f"\n⏱️  Обработка завершена за {end_time - start_time:.1f} секунд")
     
     return df
