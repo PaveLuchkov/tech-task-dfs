@@ -1,13 +1,19 @@
-def evaluate_search_engine(search_engine, queries, ground_truth):
+def evaluate_search_engine(search_engine, queries, ground_truth, top_n=5, **search_kwargs):
     metrics = {
         "mrr": [],         # Mean Reciprocal Rank
         "precision_at_5": [] # Точность на 5 результатах
     }
 
     for query, relevant_docs in ground_truth.items():
-        # Получаем топ-5 ID документов из поисковика
-        search_results = search_engine.search(query, top_n=5)
-        retrieved_ids = [idx for idx, text, score in search_results]
+        # Передаем и top_n, и все остальные специфичные аргументы
+        search_results = search_engine.search(query, top_n=top_n, **search_kwargs)
+        
+        # ВАЖНО: TF-IDF возвращает (индекс, текст), а Embedding (индекс, текст, скор)
+        # Унифицируем результат
+        if len(search_results[0]) == 3: # Если есть score
+             retrieved_ids = [idx for idx, text, score in search_results]
+        else:
+             retrieved_ids = [idx for idx, text in search_results]
 
         # Считаем Reciprocal Rank для текущего запроса
         rank = 0

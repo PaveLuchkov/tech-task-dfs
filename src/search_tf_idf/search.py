@@ -26,13 +26,14 @@ class TfidfSearch:
         self.original_texts_df = original_texts.reset_index(drop=True)
         print("TF-IDF index built successfully.")
 
-    def search(self, query: str, preprocessor_func) -> List[Tuple[int, str]]:
+    def search(self, query: str, preprocessor_func, top_n: int = TOP_N_SEARCH) -> List[Tuple[int, str]]:
         """
         Выполняет поиск по построенному индексу.
         
         Args:
             query (str): Поисковый запрос.
-            preprocessor_func: Функция для предобработки запроса (та же, что для корпуса).
+            preprocessor_func: Функция для предобработки запроса.
+            top_n (int): Количество лучших результатов для возврата.
         
         Returns:
             List[Tuple[int, str]]: Список кортежей (индекс документа, текст документа).
@@ -45,7 +46,9 @@ class TfidfSearch:
         
         cosine_sim = cosine_similarity(query_vector, self.matrix).flatten()
         
-        top_indices = np.argpartition(cosine_sim, -TOP_N_SEARCH)[-TOP_N_SEARCH:]
+        count = min(top_n, self.matrix.shape[0]) 
+        
+        top_indices = np.argpartition(cosine_sim, -count)[-count:]
         sorted_top_indices = top_indices[np.argsort(cosine_sim[top_indices])][::-1]
         
         results = [
