@@ -11,6 +11,7 @@ YAKE_NUM_KEYWORDS = 7
 TFIDF_NGRAM_RANGE = (1, 3)
 TOP_N_SEARCH = 5
 
+# DEFAULT_MODEL_NAME = "google/embeddinggemma-300m"
 DEFAULT_MODEL_NAME = "ai-forever/FRIDA"
 DEFAULT_EMBEDDING_PATH = "../data/embeddings.npy"
 DEFAULT_FAISS_INDEX_PATH = "../data/faiss_index.bin"
